@@ -9,3 +9,8 @@ export type Product = {
   variants: string;
   createDate: string;
 };
+
+export type EmbeddedProduct = {
+  product: Product;
+  embedding: number[];
+};
