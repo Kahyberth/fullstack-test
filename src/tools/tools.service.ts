@@ -17,6 +17,9 @@ import axios from 'axios';
 export class ToolsService {
   private logger = new Logger('Tools-Service');
 
+  /**
+   * Use the Open Exchange Rates API to convert a monetary amount from one currency to another
+   */
   async convertCurrencies(convertDto: ConvertCurrencies) {
     const { amount, fromCurrency, toCurrency } = convertDto;
 
@@ -45,7 +48,10 @@ export class ToolsService {
     if (fromRate === undefined || toRate === undefined) {
       throw new BadRequestException('Invalid currency code provided');
     }
-
+    /**
+     * Important: rates are relative to USD (free plan only supports USD)
+     * so we derive the direct from -> to rate by dividing the two USD based rates
+     */
     const rate = toRate / fromRate;
     const convertedAmount = amount * rate;
 

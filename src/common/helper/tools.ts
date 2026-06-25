@@ -1,5 +1,10 @@
 import OpenAI from 'openai';
 
+/**
+ *  Tool definitions exposed to the LLM. The `description` fields guide
+ * the model on when and how to call each function
+ */
+
 export const CHAT_TOOLS: OpenAI.Chat.Completions.ChatCompletionTool[] = [
   {
     type: 'function',

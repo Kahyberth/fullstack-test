@@ -11,6 +11,7 @@ import {
   OPENAI_CLIENT,
   SYSTEM_PROMPT,
 } from 'src/config/app.config';
+import { QueryDto } from 'src/products/dto/query.dto';
 import { ProductsService } from 'src/products/products.service';
 import { ConvertCurrencies } from 'src/tools/dto/convertCurrencies.dto';
 import { ToolsService } from 'src/tools/tools.service';
@@ -23,6 +24,12 @@ export class ChatService {
     private readonly toolsService: ToolsService,
   ) {}
 
+  /**
+   *  Function calling loop: keep calling the model until it returns a final
+   *  answer. Each iteration may request tool calls, whose results are fed back
+   *  so the model can decide the next step (search a product, then convert its price)
+   *  MAX_TOOL_ITERATIONS guards against infinite loops
+   */
   async chat(message: string): Promise<string> {
     const messages: OpenAI.Chat.Completions.ChatCompletionMessageParam[] = [
       { role: 'system', content: SYSTEM_PROMPT },
@@ -61,9 +68,7 @@ export class ChatService {
 
     switch (toolCall.function.name) {
       case 'searchProducts':
-        return this.productsService.searchProducts(
-          (args as { query: string }).query,
-        );
+        return this.productsService.searchProducts(args as QueryDto);
       case 'convertCurrencies':
         return this.toolsService.convertCurrencies(args as ConvertCurrencies);
       default:

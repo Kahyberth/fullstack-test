@@ -1,12 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class ChatDto {
+export class QueryDto {
   @ApiProperty({
-    description: 'User enquiry sent to the chatbot',
-    example: 'I am looking for a phone',
+    description: 'Query to search for products',
+    example: 'phone',
   })
   @IsString()
   @IsNotEmpty()
-  message: string;
+  query: string;
 }

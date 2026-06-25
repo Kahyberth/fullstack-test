@@ -22,12 +22,18 @@ import {
 } from 'src/common/types/search-products.type';
 import OpenAI from 'openai';
 import { cosineSimilarity } from 'src/common/helper/cosineSimilarity';
+import { QueryDto } from './dto/query.dto';
 
 @Injectable()
 export class ProductsService implements OnModuleInit {
   private embeddedProducts: EmbeddedProduct[] = [];
   private readonly logger = new Logger('Products-Service');
   constructor(@Inject(OPENAI_CLIENT) private readonly openai: OpenAI) {}
+
+  /**
+   * Build the embedding index once when the module starts,
+   * so searches don't re embed the catalog on every request
+   */
 
   async onModuleInit() {
     const products = this.loadProducts();
@@ -37,6 +43,7 @@ export class ProductsService implements OnModuleInit {
     );
   }
 
+  // Embed all products in a single request: results come back in input order
   private async buildEmbeddingIndex(
     products: Product[],
   ): Promise<EmbeddedProduct[]> {
@@ -55,7 +62,11 @@ export class ProductsService implements OnModuleInit {
     }
   }
 
-  async searchProducts(query: string): Promise<Product[]> {
+  /**
+   * Embed the query and rank catalog products by cosine similarity
+   * returning the most relevant ones
+   */
+  async searchProducts({ query }: QueryDto): Promise<Product[]> {
     if (!query) {
       throw new BadRequestException('Query is required');
     }
@@ -84,6 +95,13 @@ export class ProductsService implements OnModuleInit {
   loadProducts(): Product[] {
     const filePath = join(process.cwd(), DATA_DIR, PRODUCTS_LIST_FILENAME);
     const fileContent = readFileSync(filePath, 'utf-8');
+
+    /**
+     * The source CSV uses unescaped double quotes as inch marks (8", 86")
+     * Inside quoted fields, which is invalid csv. We escape only the quotes that
+     * are not at a field boundary (not adjacent to a comma or line break) by
+     * doubling them ("") so strict parsing still respects commas inside fields
+     */
 
     const sanitizedContent = fileContent.replace(
       /(?<=[^,\r\n"])"(?=[^,\r\n"])/g,

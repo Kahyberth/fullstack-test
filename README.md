@@ -85,6 +85,9 @@ Send a user enquiry to the chatbot
   "response": "I found a great phone for you:\n\n### [iPhone SE](https://wizybot-demo-store.myshopify.com/products/iphone-se)\n- **Price:** 180.00 USD\n- **Color Options:** Black, Blue\n- **Capacity Options:** 64GB, 256GB\n- **Discounted Price:** Yes\n\n![iPhone SE](https://cdn.shopify.com/s/files/1/0779/8125/3922/files/ScreenShot2023-06-21at4.57.34PM.png?v=1687384788)\n\nWould you like more information or help with anything else?"
 }
 ```
+### Swagger
+Interactive API documentation is available at `http://localhost:<PORT>/docs` once the app is running
+
 
 ## Project Structure
 
