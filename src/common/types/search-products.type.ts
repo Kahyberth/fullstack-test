@@ -14,3 +14,8 @@ export type EmbeddedProduct = {
   product: Product;
   embedding: number[];
 };
+
+export type ProductSummary = Pick<
+  Product,
+  'displayTitle' | 'price' | 'variants' | 'productType' | 'url'
+>;

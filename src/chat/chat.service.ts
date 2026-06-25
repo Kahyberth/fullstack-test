@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import OpenAI from 'openai';
 import { CHAT_TOOLS } from 'src/common/helper/tools';
+import { toProductSummary } from 'src/common/helper/toProductSummary';
 import {
   MAX_TOOL_ITERATIONS,
   OPENAI_CHAT_MODEL,
@@ -67,8 +68,12 @@ export class ChatService {
     const args = JSON.parse(toolCall.function.arguments) as unknown;
 
     switch (toolCall.function.name) {
-      case 'searchProducts':
-        return this.productsService.searchProducts(args as QueryDto);
+      case 'searchProducts': {
+        const products = await this.productsService.searchProducts(
+          args as QueryDto,
+        );
+        return products.map(toProductSummary);
+      }
       case 'convertCurrencies':
         return this.toolsService.convertCurrencies(args as ConvertCurrencies);
       default:
