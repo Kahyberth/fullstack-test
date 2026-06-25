@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { join } from 'path';
 
 export const axiosClient = axios.create({
   baseURL: 'https://openexchangerates.org/api',
@@ -6,3 +7,7 @@ export const axiosClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+export const PRODUCTS_LIST_FILENAME = 'products_list.csv';
+export const DATA_DIR = join('src', 'data');
+export const OPENAI_CLIENT = 'OPENAI_CLIENT';
