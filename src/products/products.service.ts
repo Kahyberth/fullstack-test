@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   Inject,
   Injectable,
   InternalServerErrorException,
   Logger,
+  OnModuleInit,
 } from '@nestjs/common';
 import { readFileSync } from 'fs';
 import { join } from 'path';
@@ -12,15 +14,17 @@ import {
   OPENAI_CLIENT,
   OPENAI_EMBEDDING_MODEL,
   PRODUCTS_LIST_FILENAME,
+  PRODUCTS_TO_RETURN,
 } from 'src/config/app.config';
 import {
   EmbeddedProduct,
   Product,
 } from 'src/common/types/search-products.type';
 import OpenAI from 'openai';
+import { cosineSimilarity } from 'src/common/helper/cosineSimilarity';
 
 @Injectable()
-export class ProductsService {
+export class ProductsService implements OnModuleInit {
   private embeddedProducts: EmbeddedProduct[] = [];
   private readonly logger = new Logger('Products-Service');
   constructor(@Inject(OPENAI_CLIENT) private readonly openai: OpenAI) {}
@@ -48,6 +52,32 @@ export class ProductsService {
     } catch (error) {
       this.logger.error('Error building embedding index', error);
       throw new InternalServerErrorException('Error building embedding index');
+    }
+  }
+
+  async searchProducts(query: string): Promise<Product[]> {
+    if (!query) {
+      throw new BadRequestException('Query is required');
+    }
+
+    try {
+      const { data } = await this.openai.embeddings.create({
+        model: OPENAI_EMBEDDING_MODEL,
+        input: query,
+      });
+      const queryEmbedding = data[0].embedding;
+
+      return this.embeddedProducts
+        .map(({ product, embedding }) => ({
+          product,
+          score: cosineSimilarity(queryEmbedding, embedding),
+        }))
+        .sort((a, b) => b.score - a.score)
+        .slice(0, PRODUCTS_TO_RETURN)
+        .map((result) => result.product);
+    } catch (error) {
+      this.logger.error('Error searching products', error);
+      throw new InternalServerErrorException('Error searching products');
     }
   }
 
